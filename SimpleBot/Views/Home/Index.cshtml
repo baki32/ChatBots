@@ -1,0 +1,56 @@
+﻿@{
+    ViewBag.Title = "Home Page";
+}
+
+@section Styles{
+    <link href="https://cdn.botframework.com/botframework-webchat/latest/botchat.css" rel="stylesheet" />
+}
+
+@section scripts{
+    <script src="https://cdn.botframework.com/botframework-webchat/latest/botchat.js"></script>
+    <script>
+        //var convId = getPersistedConversationId();
+        //saveConversationId(convId);
+
+        const botConnection = new BotChat.DirectLine({
+            secret: '_dYNoVGXoHI.cwA.qMg.Ut2nDLRxsWlCrf6jR30iVQ4v2DfRl5cz-2FBWTPyqpM',
+            webSocket: true,
+            conversationId: getPersistedConversationId()
+        }); 
+
+        var app = BotChat.App({
+            //directLine: {
+            //    webSocket: true,
+            //    secret: '_dYNoVGXoHI.cwA.qMg.Ut2nDLRxsWlCrf6jR30iVQ4v2DfRl5cz-2FBWTPyqpM',
+            //    conversationId: convId
+            //},
+            botConnection: botConnection,
+            user: { id: 'userid' },
+            bot: { id: 'botid' },
+            resize: 'detect'            
+        }, document.getElementById("bot"));
+
+        var a = app;
+        
+                        
+        botConnection.connectionStatus$
+            .subscribe(function (connectionStatus) {
+                switch (connectionStatus) {
+                    case 2:
+                        botConnection.postActivity({ type: "event", from: { id: 'myUserId', name: 'myUserName' }, name: "Echo" }).subscribe(function (activityId) { });
+                        saveConversationId(botConnection.conversationId);
+                }
+            });
+        function saveConversationId(conversationId) {
+            var today = new Date();
+            var expiry = new Date(today.getTime() + 3 * 3600 * 1000); // remember conversation for 3 hours 
+            document.cookie = "conversationId=" + escape(conversationId) + "; path=/; expires=" + expiry.toGMTString();
+        }
+        function getPersistedConversationId() {
+            var re = new RegExp("conversationId=([^;]+)");
+            var conversationId = re.exec(document.cookie);
+            return (conversationId != null) ? unescape(conversationId[1]) : null;
+        } 
+    </script>
+}
+<div id="bot" />
